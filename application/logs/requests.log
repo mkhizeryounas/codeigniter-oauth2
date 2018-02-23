@@ -510,3 +510,4 @@
 >> GET - 2018-02-22 11:36:17 pm | URI: /oauth-server/oauth/authorize?response_type=code&client_id=shopdeskClientId&redirect_uri=localhost:8888/oauth-server/example/redirect.php&scope=products_read,products_write | Data: {"\/oauth\/authorize":""}
 >> GET - 2018-02-23 04:53:38 am | URI: /oauth-server/oauth/authorize?response_type=code&client_id=shopdeskClientId&redirect_uri=localhost:8888/oauth-server/example/redirect.php&scope=products_read,products_write | Data: {"\/oauth\/authorize":""}
 >> GET - 2018-02-23 04:53:44 am | URI: /oauth-server/oauth/authorize?response_type=code&client_id=shopdeskClientId&redirect_uri=localhost:8888/oauth-server/example/redirect.php&scope=products_read,products_write | Data: {"\/oauth\/authorize":""}
+>> GET - 2018-02-24 03:18:30 am | URI: /oauth-server/ | Data: []

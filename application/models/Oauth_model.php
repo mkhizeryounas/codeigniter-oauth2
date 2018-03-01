@@ -10,5 +10,9 @@ class Oauth_model extends CI_Model {
     public function getApp($id) {
         return $this->db->query('SELECT * FROM `apps` WHERE app_client_id=?', [$id])->row_array(); 
     }
+    public function addToken($data) {
+        $q = "INSERT INTO `tokens`(`app_id`, `user_id`, `access_token`, `refresh_token`, `token_ expires_at`, `token_code`, `scope`, `callback_url`, `token_grant_type`, `token_code_active`) VALUES (?,?,?,?,?,?,?,?,?,?)";        
+        return $this->db->query($q, $data);
+    }
     
 }

@@ -30,3 +30,14 @@ function fullpath() {
 	$params   = $_SERVER['QUERY_STRING'];
 	return $currentURL . '?' . $params;
 }
+
+function sd_encrypt($str) {
+	$ci =& get_instance();
+	$ci->load->library('encryption');
+	return $ci->encryption->encrypt($str);
+}
+function sd_decrypt($hash) {
+	$ci =& get_instance();
+	$ci->load->library('encryption');
+	return $ci->encryption->decrypt($hash);
+}

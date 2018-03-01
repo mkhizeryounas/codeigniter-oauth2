@@ -23,10 +23,19 @@
             </ul>
             <hr>
             <div class="pull-right">
-                <button type="button" class="btn btn-danger btn-lg">Deny</button>
-                <button type="button" class="btn btn-success btn-lg">Allow</button>
+			    <?php echo form_open(uri_string()); ?>
+                    <input type="hidden" name="app_id" value="<?php echo $info['app']['app_id'] ?>">
+                    <input type="hidden" name="user_id" value="<?php echo $info['user']['user_id'] ?>">
+                    <input type="hidden" name="redirect_uri" value="<?php echo $info['redirect_uri']?>">
+                    <input type="hidden" name="checksum" value="<?php echo $info['checksum']?>">
+                    <input type="hidden" name="state" value="<?php echo $info['state']?>">
+                    <input type="hidden" name="scope" value="<?php echo implode(',', $info['scope'])?>">
+                    <button type="submit" name="access" class="btn btn-danger btn-lg" value="deny">Deny</button>
+                    <button type="submit" name="access" class="btn btn-success btn-lg" value="allow">Allow</button>
+			    <?php echo form_close(); ?>
             </div>
         </div>
         <div class="clearfix"></div>
+        
     </div>
 <?php include APPPATH.'views/auth/includes/footer.php' ?>

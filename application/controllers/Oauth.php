@@ -21,7 +21,7 @@ class Oauth extends REST_Controller {
                 try {
                     $client_id = $this->get('client_id');
                     $redirect_uri = urldecode($this->get('redirect_uri'));
-                    $scope = explode(",", $this->get('scope'));
+                    $scope = explode(",", strtolower($this->get('scope')));
                     $state = ($this->get('state')?$this->get('state'):"");
                     if(is_array($scope)) {
                         $scope = array_values(array_diff($scope, array("")));
@@ -48,7 +48,7 @@ class Oauth extends REST_Controller {
                                 throw new Exception('invalid client_id');
                             
                             unset($userData['user_password']);
-                            
+                            $_SESSION['oauth_checksum'] = uniqid();
                             $data['info'] = [
                                 "status" => true,
                                 "client_id"=>$client_id,
@@ -56,17 +56,15 @@ class Oauth extends REST_Controller {
                                 "scope"=>$scope,
                                 "state" => $state,
                                 "user" => $userData,
-                                "app" => $appData
+                                "app" => $appData,
+                                "checksum" => $_SESSION['oauth_checksum']
                             ];
-                            $this->set_response($data['info']);
-
-                            
-
-                            // $this->load->view('auth/oauth/oauth-authorize-app', $data);
+                            // $this->set_response($data['info']);
+                            $this->load->view('auth/oauth/oauth-authorize-app', $data);
                         }
                         catch (Exception $e) {
                             $data['error'] = $e->getMessage();
-                             $this->load->view('auth/oauth/oauth-authorize-error', $data);
+                            $this->load->view('auth/oauth/oauth-authorize-error', $data);
                         }
                     }
                     else {
@@ -91,10 +89,81 @@ class Oauth extends REST_Controller {
             break;
         }
     }
+    public function authorize_post() {
+        try {
+            if(!isset($_SESSION['oauth_checksum']) || ($this->post('checksum') != $_SESSION['oauth_checksum'] )) {
+                throw new Exception('oAuth checksum failed');
+            }
+            unset($_SESSION['oauth_checksum']);
+            if(!($this->post('app_id')  && $this->post('user_id') && $this->post('redirect_uri'))) {
+                throw new Exception('autorization error');
+            }
+            if($this->post('access')==='deny') {
+                redirect($this->post('redirect_uri')."?error=access_denied&state=".$this->post('state'));
+                return;
+            }
+            $code = $this->genTokens(
+                $this->post('app_id'),
+                $this->post('user_id'),
+                $this->post('scope'),
+                uniqid(),
+                $this->post('redirect_uri')
+            );
+            if($code) {
+                redirect($this->post('redirect_uri')."?code=".$code."&state=".$this->post('state'));
+                return;
+            }
+            else {
+                redirect($this->post('redirect_uri')."?error=authentication_failed&state=".$this->post('state'));
+                return;
+            }
+            // $this->set_response($this->post());
+        }
+        catch (Exception $e) {
+            $this->set_response([
+                "status" => false,
+                "message" => $e->getMessage()
+            ]);
+        }
+    }
 
-    private function genTokens($app_id, $user_id, $scope, $code=null) {
-        $scope = implode(',', $scope);
-        
+    private function genTokens($app_id, $user_id, $scope, $code=null, $callback_url=null) {
+        $code_active = ($code?1:0);
+        $code = ($code==null ? uniqid() : $code);
+        $expires_in = 36000;
+        $access_token = pwd(uniqid());
+        $refresh_token = pwd(uniqid());
+        $expires_at = time()+$expires_in;
+        $token_type = "Bearer";
+
+        $data = [
+            $app_id,
+            $user_id,
+            $access_token,
+            $refresh_token,
+            $expires_at,
+            $code,
+            $scope,
+            $callback_url,
+            null,
+            $code_active
+        ];
+        if($this->Oauth_model->addToken($data)) {
+            if(!$code_active) {
+                return [
+                    "access_token" => $access_token,
+                    "token_type" => $token_type,
+                    "expires_in" => $expires_in,
+                    "refresh_token" => $refresh_token,
+                    "scope" => $scope
+                ];
+            }
+            else {
+                return $code;
+            }
+        }
+        else 
+            return false;
     }
 
     public function status_get()	{
